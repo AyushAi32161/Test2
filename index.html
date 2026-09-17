@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#020508">
+  <title>ANURAG CYBER TERMINAL</title>
+  <style>
+    :root{--bg:#020508;--panel:rgba(4,14,18,.84);--green:#54ff9a;--cyan:#54eaff;--purple:#bb75ff;--amber:#ffe27a;--muted:#80a9a9;--line:rgba(84,255,154,.28);--red:#ff6687}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:#d8fff0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+    body{min-height:100vh;overflow-x:hidden}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    #matrix{position:fixed;inset:0;width:100%;height:100%;opacity:.2;pointer-events:none}
+    body:after{content:"";position:fixed;inset:0;z-index:20;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(112,255,194,.045) 4px),linear-gradient(90deg,transparent 49.8%,rgba(84,234,255,.025) 50%,transparent 50.2%)}
+    .screen{position:relative;z-index:1;display:none;min-height:100vh;padding:clamp(18px,4vw,48px);align-items:center;justify-content:center}
+    .screen.active{display:flex}
+    .frame{width:min(1080px,100%);border:1px solid var(--line);background:var(--panel);box-shadow:0 0 0 1px rgba(255,255,255,.025) inset,0 0 65px rgba(25,255,151,.12);backdrop-filter:blur(8px)}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 15px;background:var(--green);color:#03150c;font-size:11px;font-weight:800;letter-spacing:.08em}
+    .topbar .dots{letter-spacing:4px}
+    .inner{padding:clamp(20px,5vw,52px)}
+    .boot{width:min(760px,100%);text-align:center}
+    .ascii{margin:0;color:var(--green);font-size:clamp(7px,1.65vw,16px);line-height:1.05;text-shadow:0 0 16px rgba(84,255,154,.7);white-space:pre;overflow:hidden}
+    .eyebrow{margin:22px 0 8px;color:var(--cyan);font-size:clamp(11px,2vw,15px);letter-spacing:.22em}
+    .boot-copy{margin:0;color:var(--muted);font-size:12px}
+    .boot-log{min-height:106px;margin:28px auto 18px;padding:15px;text-align:left;border:1px solid var(--line);color:#a9ffd0;background:rgba(0,0,0,.32);font-size:12px;line-height:1.8}
+    .boot-log span{display:block;animation:rise .35s both}
+    .loader{height:8px;border:1px solid #286b4b;background:#081b12}
+    .loader i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan),var(--green));box-shadow:0 0 14px var(--green);transition:width .3s}
+    .boot-status{margin-top:11px;color:var(--green);font-size:11px;letter-spacing:.1em}
+    .identity{width:min(630px,100%)}
+    .brandline{display:flex;justify-content:space-between;gap:15px;align-items:center;color:var(--green);font-size:12px;letter-spacing:.12em}
+    .identity h1{margin:28px 0 8px;color:var(--cyan);font-size:clamp(24px,5vw,42px);letter-spacing:.04em;text-shadow:0 0 14px rgba(84,234,255,.4)}
+    .identity .lead{color:#b4d8ce;line-height:1.7;font-size:13px}
+    .identity-card{margin-top:24px;padding:20px;border:1px solid var(--line);background:rgba(0,0,0,.27)}
+    label{display:block;margin:0 0 9px;color:var(--cyan);font-size:11px;letter-spacing:.13em}
+    input[type=text],input[type=password]{width:100%;padding:13px 14px;border:1px solid #367c6a;border-radius:0;outline:0;color:#eafff2;background:#06100f}
+    input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(84,234,255,.13)}
+    .consent{display:flex;gap:10px;align-items:flex-start;margin:19px 0 0;color:#abd0c0;font-size:12px;line-height:1.55;cursor:pointer}
+    .consent input{margin-top:3px;accent-color:var(--green)}
+    .consent strong{color:#e7fff2}
+    .continue{width:100%;margin-top:19px;padding:13px;border:1px solid var(--green);color:#02160b;background:var(--green);font-weight:800;letter-spacing:.08em;opacity:.4}
+    .continue:not(:disabled):hover{background:#c9ffe0;box-shadow:0 0 22px rgba(84,255,154,.35)}
+    .continue:disabled{cursor:not-allowed}
+    .small-note{margin:17px 0 0;color:#789b93;font-size:10px;line-height:1.6}
+    .visual-login{margin-top:22px;padding-top:19px;border-top:1px solid rgba(84,255,154,.2)}
+    .visual-login summary{color:var(--purple);font-size:11px;letter-spacing:.1em;cursor:pointer}
+    .visual-login p{color:#71958c;font-size:10px;line-height:1.5}
+    .visual-login-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .visual-login button{margin-top:11px;padding:9px 12px;border:1px solid var(--purple);color:var(--purple);background:transparent;font-size:11px}
+    .visual-login button:hover{background:var(--purple);color:#180b29}
+    .sequence{align-items:flex-start;padding-top:22px}
+    .sequence .frame{margin:auto}
+    .sequence .inner{padding:clamp(16px,3vw,32px)}
+    .hud-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+    .hud-title h2{margin:0;color:var(--green);font-size:clamp(16px,3vw,25px);letter-spacing:.1em}
+    .hud-title span{color:var(--amber);font-size:10px}
+    .hud-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(250px,.6fr);gap:15px}
+    .panel{min-width:0;border:1px solid var(--line);background:rgba(0,0,0,.26);padding:16px}
+    .panel-label{margin-bottom:12px;color:var(--cyan);font-size:10px;letter-spacing:.15em}
+    .terminal{height:300px;overflow:hidden;color:#bcffd5;font-size:11px;line-height:1.7}
+    .terminal p{margin:0 0 7px;animation:rise .25s ease both}
+    .tag{color:var(--green)}.dim{color:#628b7b}.warn{color:var(--amber)}.critical{color:var(--red)}
+    .silhouette{position:relative;height:116px;margin:6px auto 17px;max-width:220px;overflow:hidden}
+    .silhouette:before{content:"";position:absolute;left:50%;top:10px;width:62px;height:62px;transform:translateX(-50%);border:2px solid var(--purple);border-radius:50%;box-shadow:0 0 20px rgba(187,117,255,.45)}
+    .silhouette:after{content:"";position:absolute;left:50%;bottom:-22px;width:140px;height:90px;transform:translateX(-50%);border:2px solid var(--purple);border-radius:70% 70% 0 0;box-shadow:0 0 22px rgba(187,117,255,.34)}
+    .visor{position:absolute;z-index:1;left:50%;top:37px;width:54px;height:12px;transform:translateX(-50%);background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+    .meter{height:9px;margin:11px 0 7px;border:1px solid #286b4b;background:#081b12}
+    .meter i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));box-shadow:0 0 12px var(--green);transition:width .4s}
+    .metric{display:flex;justify-content:space-between;color:#86aea0;font-size:10px;line-height:2.1}
+    .metric b{color:var(--green);font-weight:500}
+    .progress-title{display:flex;justify-content:space-between;color:var(--cyan);font-size:10px}
+    .wave{display:flex;align-items:center;gap:3px;height:42px;margin-top:18px}
+    .wave i{flex:1;min-width:2px;background:var(--green);animation:wave 1s ease-in-out infinite alternate}
+    .wave i:nth-child(3n){background:var(--cyan)}.wave i:nth-child(4n){background:var(--purple)}
+    .name-chip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;color:var(--amber)}
+    .reveal{display:none;text-align:center;padding:70px 20px;min-height:70vh;align-items:center;justify-content:center}
+    .reveal.active{display:flex}
+    .reveal-box{width:min(700px,100%);padding:38px 22px;border:1px solid var(--green);background:rgba(13,38,26,.74);box-shadow:0 0 50px rgba(84,255,154,.2)}
+    .reveal h1{margin:0;color:var(--green);font-size:clamp(28px,7vw,64px);line-height:1.1;text-shadow:0 0 20px rgba(84,255,154,.65)}
+    .reveal p{margin:22px 0 0;color:var(--cyan);font-size:clamp(16px,3vw,25px);letter-spacing:.12em}
+    .reveal small{display:block;margin-top:26px;color:#9ac9b5;font-size:11px}
+    .glitch{animation:glitch 1.8s infinite}
+    @keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    @keyframes wave{from{height:12%}to{height:100%}}
+    @keyframes glitch{0%,90%,100%{transform:none}92%{transform:skewX(8deg);text-shadow:3px 0 var(--red),-3px 0 var(--cyan)}95%{transform:skewX(-5deg)}}
+    @media (max-width:700px){.hud-grid{grid-template-columns:1fr}.terminal{height:260px}.topbar span:last-child{display:none}.inner{padding:22px 16px}.visual-login-grid{grid-template-columns:1fr}.sequence{padding:10px}}
+    @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <section id="bootScreen" class="screen active" aria-label="Terminal startup">
+    <div class="boot">
+      <pre class="ascii">
+ █████╗ ███╗   ██╗██╗   ██╗██████╗  █████╗  ██████╗
+██╔══██╗████╗  ██║██║   ██║██╔══██╗██╔══██╗██╔════╝
+███████║██╔██╗ ██║██║   ██║██████╔╝███████║██║  ███╗
+██╔══██║██║╚██╗██║██║   ██║██╔══██╗██╔══██║██║   ██║
+██║  ██║██║ ╚████║╚██████╔╝██║  ██║██║  ██║╚██████╔╝
+╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝</pre>
+      <div class="eyebrow">A N U R A G &nbsp; C Y B E R &nbsp; T E R M I N A L</div>
+      <p class="boot-copy">PHANTOM INTERFACE // SECURE VISUAL CHANNEL</p>
+      <div id="bootLog" class="boot-log" aria-live="polite"></div>
+      <div class="loader"><i id="bootFill"></i></div>
+      <div id="bootStatus" class="boot-status">INITIALIZING VISUAL CORE</div>
+    </div>
+  </section>
+
+  <section id="identityScreen" class="screen" aria-label="Identity verification">
+    <div class="frame identity">
+      <div class="topbar"><span class="dots">● ● ●</span><span>IDENTITY VERIFICATION</span><span>CHANNEL: CONSENTED</span></div>
+      <div class="inner">
+        <div class="brandline"><span>ANURAG_OS // ENTRY NODE</span><span>v4.2</span></div>
+        <h1>IDENTITY VERIFICATION</h1>
+        <p class="lead">Enter any name to personalize this terminal experience. Your voluntarily entered name can be sent to Anurag through the configured form endpoint when you continue.</p>
+        <div class="identity-card">
+          <label for="visitorName">VISITOR NAME</label>
+          <input id="visitorName" type="text" maxlength="80" autocomplete="off" placeholder="Type any name" aria-describedby="consentText">
+          <label class="consent" id="consentText">
+            <input id="consentBox" type="checkbox">
+            <span>I freely consent to submitting <strong>only the name typed above</strong> to Anurag. I understand this is optional and no other personal, device, browser, or account data will be submitted.</span>
+          </label>
+          <button id="continueButton" class="continue" type="button" disabled>CONTINUE WITH CONSENT</button>
+          <p class="small-note">The name is used locally in the terminal too. If no endpoint is configured or the endpoint is unavailable, the experience continues without an error.</p>
+        </div>
+        <details class="visual-login">
+          <summary>VISUAL ACCESS PANEL // CREDENTIALS NOT COLLECTED</summary>
+          <p>This panel is decorative only. Do not enter real credentials. Username and password fields are never submitted, stored, or used by this website.</p>
+          <div class="visual-login-grid">
+            <input type="text" autocomplete="off" placeholder="visual username" aria-label="Visual username">
+            <input type="password" autocomplete="off" placeholder="visual password" aria-label="Visual password">
+          </div>
+          <button id="visualLoginButton" type="button">RUN VISUAL CHECK</button>
+          <div id="visualLoginStatus" class="small-note" aria-live="polite"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="sequenceScreen" class="screen sequence" aria-label="Cybersecurity terminal sequence">
+    <div class="frame">
+      <div class="topbar"><span class="dots">● ● ●</span><span>ANURAG_OS / PHANTOM INTERFACE</span><span id="sequenceStatus">SECURE RELAY: ACTIVE</span></div>
+      <div class="inner">
+        <div class="hud-title"><h2>CYBERSECURITY ACTIVITY STREAM</h2><span>OPERATOR: ANURAG</span></div>
+        <div class="hud-grid">
+          <div class="panel">
+            <div class="panel-label">LIVE TERMINAL // VISITOR: <span id="nameChip" class="name-chip"></span></div>
+            <div id="terminal" class="terminal" aria-live="polite"></div>
+            <div id="wave" class="wave" aria-hidden="true"></div>
+          </div>
+          <aside class="panel">
+            <div class="panel-label">PHANTOM OPERATOR</div>
+            <div class="silhouette" aria-hidden="true"><span class="visor"></span></div>
+            <div class="metric"><span>RELAY LINK</span><b id="relay">CONNECTING</b></div>
+            <div class="metric"><span>VISUAL NODES</span><b id="nodes">00 / 12</b></div>
+            <div class="metric"><span>THREAT INDEX</span><b id="threat">CALIBRATING</b></div>
+            <div class="progress-title"><span>ANALYSIS PROGRESS</span><span id="progressPercent">0%</span></div>
+            <div class="meter"><i id="progressFill"></i></div>
+            <div class="progress-title"><span>SECURITY CHANNEL</span><span id="channelPercent">0%</span></div>
+            <div class="meter"><i id="channelFill"></i></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="revealScreen" class="screen reveal" aria-label="Final reveal">
+    <div class="reveal-box">
+      <h1 class="glitch">😂 PRANK — GOT YOU!</h1>
+      <p>Made by Anurag</p>
+      <p>Aadhya, sorry once.</p>
+      <small>All displayed analysis was fictional. Only the voluntarily entered name was eligible for consented submission.</small>
+    </div>
+  </section>
+
+  <script>
+    const FORM_ENDPOINT = "YOUR_CONSENTED_FORM_ENDPOINT";
+
+    const $ = (selector) => document.querySelector(selector);
+    const screens = {
+      boot: $("#bootScreen"),
+      identity: $("#identityScreen"),
+      sequence: $("#sequenceScreen"),
+      reveal: $("#revealScreen")
+    };
+
+    function showScreen(screen) {
+      Object.values(screens).forEach((item) => item.classList.remove("active"));
+      screen.classList.add("active");
+    }
+
+    // The canvas draws generated characters only; it does not inspect the device.
+    const canvas = $("#matrix");
+    const context = canvas.getContext("2d");
+    let columns = [];
+    function resizeMatrix() {
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(innerWidth * scale);
+      canvas.height = Math.floor(innerHeight * scale);
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+      columns = Array.from({length: Math.ceil(innerWidth / 17)}, () => Math.random() * innerHeight / 17);
+    }
+    function drawMatrix() {
+      context.fillStyle = "rgba(2,5,8,.12)";
+      context.fillRect(0, 0, innerWidth, innerHeight);
+      context.font = "13px monospace";
+      columns.forEach((y, index) => {
+        const character = "01アイウエオカキクケコサシスセソ"[Math.floor(Math.random() * 25)];
+        context.fillStyle = index % 7 === 0 ? "#54eaff" : "#54ff9a";
+        context.fillText(character, index * 17, y * 17);
+        columns[index] = y * 17 > innerHeight && Math.random() > .975 ? 0 : y + .75;
+      });
+      requestAnimationFrame(drawMatrix);
+    }
+    resizeMatrix();
+    addEventListener("resize", resizeMatrix);
+    drawMatrix();
+
+    const bootMessages = [
+      "Loading encrypted visual kernel …",
+      "Mounting phantom interface …",
+      "Synchronizing neon relay …",
+      "Calibrating cinematic control plane …",
+      "Startup sequence ready."
+    ];
+    let bootIndex = 0;
+    function bootStep() {
+      const line = document.createElement("span");
+      line.textContent = `[${String(bootIndex + 1).padStart(2, "0")}] ${bootMessages[bootIndex]}`;
+      $("#bootLog").append(line);
+      $("#bootFill").style.width = `${((bootIndex + 1) / bootMessages.length) * 100}%`;
+      $("#bootStatus").textContent = bootIndex === bootMessages.length - 1 ? "VISUAL CORE READY" : "INITIALIZING VISUAL CORE";
+      bootIndex += 1;
+      if (bootIndex < bootMessages.length) {
+        setTimeout(bootStep, 520);
+      } else {
+        setTimeout(() => showScreen(screens.identity), 850);
+      }
+    }
+    setTimeout(bootStep, 500);
+
+    const visitorName = $("#visitorName");
+    const consentBox = $("#consentBox");
+    const continueButton = $("#continueButton");
+    function updateContinueState() {
+      const enabled = visitorName.value.trim().length > 0 && consentBox.checked;
+      continueButton.disabled = !enabled;
+      continueButton.style.opacity = enabled ? "1" : ".4";
+    }
+    visitorName.addEventListener("input", updateContinueState);
+    consentBox.addEventListener("change", updateContinueState);
+
+    $("#visualLoginButton").addEventListener("click", () => {
+      $("#visualLoginStatus").textContent = "VISUAL CHECK COMPLETE // NO CREDENTIALS WERE COLLECTED";
+    });
+
+    async function submitName(name) {
+      if (!FORM_ENDPOINT || FORM_ENDPOINT === "YOUR_CONSENTED_FORM_ENDPOINT") return;
+      try {
+        await fetch(FORM_ENDPOINT, {
+          method: "POST",
+          headers: {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
+          body: new URLSearchParams({name}).toString(),
+          mode: "no-cors",
+          keepalive: true
+        });
+      } catch (error) {
+        // The local experience remains usable when an optional endpoint is unavailable.
+      }
+    }
+
+    const fictionalLines = [
+      ["BOOT", "Loading phantom diagnostic layer …"],
+      ["AUTH", "Consent channel acknowledged // session secured"],
+      ["SCAN", "Enumerating fictional endpoint surface …"],
+      ["NODE", "Visual node mesh synchronized // 12 nodes online"],
+      ["TRACE", "Routing generated telemetry through neon relay …"],
+      ["STORAGE", "Reviewing fictional storage sectors …"],
+      ["FILE", "Indexing generated file signatures …"],
+      ["THREAT", "Threat matrix recalculated // pattern contained"],
+      ["NETWORK", "Mapping fictional network routes …"],
+      ["SECURITY", "Security policy lattice aligned …"],
+      ["SIGNAL", "Operator signal detected // ANURAG channel stable"],
+      ["FINAL", "Preparing terminal output …"]
+    ];
+    const generatedValues = ["0x7A4C", "0xB19E", "0x03FD", "0xE820", "0x91AA", "0x4D67"];
+    let sequenceTimers = [];
+    function addTerminalLine(tag, message, tone = "") {
+      const paragraph = document.createElement("p");
+      paragraph.innerHTML = `<span class="tag">[${tag}]</span> ${message} <span class="dim">${generatedValues[Math.floor(Math.random() * generatedValues.length)]}</span>`;
+      if (tone) paragraph.classList.add(tone);
+      $("#terminal").append(paragraph);
+      while ($("#terminal").children.length > 11) $("#terminal").firstElementChild.remove();
+    }
+    function setWave() {
+      $("#wave").innerHTML = Array.from({length: 36}, (_, index) => `<i style="animation-delay:-${(index % 10) / 10}s"></i>`).join("");
+    }
+    function startSequence(name) {
+      showScreen(screens.sequence);
+      $("#nameChip").textContent = name;
+      setWave();
+      addTerminalLine("IDENTITY", `Visitor linked: <span class="name-chip">${name.replace(/[<>&"]/g, "")}</span>`);
+      const start = Date.now();
+      const total = 45000;
+      let lineIndex = 0;
+      const lineTimer = setInterval(() => {
+        if (lineIndex >= fictionalLines.length) return;
+        const [tag, message] = fictionalLines[lineIndex];
+        addTerminalLine(tag, message, tag === "THREAT" ? "warn" : "");
+        lineIndex += 1;
+      }, 3200);
+      sequenceTimers.push(lineTimer);
+      const progressTimer = setInterval(() => {
+        const percent = Math.min(100, Math.round(((Date.now() - start) / total) * 100));
+        $("#progressFill").style.width = `${percent}%`;
+        $("#channelFill").style.width = `${Math.min(100, percent + 7)}%`;
+        $("#progressPercent").textContent = `${percent}%`;
+        $("#channelPercent").textContent = `${Math.min(100, percent + 7)}%`;
+        $("#nodes").textContent = `${String(Math.min(12, Math.ceil(percent / 9))).padStart(2, "0")} / 12`;
+        $("#relay").textContent = percent > 22 ? "STABLE" : "CONNECTING";
+        $("#threat").textContent = percent > 75 ? "CONTAINED" : percent > 35 ? "ELEVATED" : "CALIBRATING";
+        if (percent >= 100) {
+          clearInterval(progressTimer);
+          sequenceTimers = sequenceTimers.filter((timer) => timer !== progressTimer);
+          setTimeout(() => {
+            sequenceTimers.forEach(clearInterval);
+            showScreen(screens.reveal);
+          }, 900);
+        }
+      }, 450);
+      sequenceTimers.push(progressTimer);
+    }
+
+    continueButton.addEventListener("click", async () => {
+      const name = visitorName.value.trim();
+      if (!name || !consentBox.checked) return;
+      continueButton.disabled = true;
+      continueButton.textContent = "SECURING CONSENTED CHANNEL …";
+      await submitName(name);
+      startSequence(name);
+    });
+  </script>
+</body>
+</html>
